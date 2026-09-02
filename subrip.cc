@@ -121,6 +121,12 @@ SubripFormat::subrip_prevwp_pr(const Waypoint* waypointp)
         *fout << QStringLiteral("Lat=%1 Lon=%2")
                   .arg(prevwpp->latitude, 0, 'f', 5).arg(prevwpp->longitude, 0, 'f', 5);
         break;
+      case u'x': // longitude only
+        *fout << QStringLiteral("%1").arg(prevwpp->longitude, 0, 'f', 5);
+        break;
+      case u'y': // latitude only
+        *fout << QStringLiteral("%1").arg(prevwpp->latitude, 0, 'f', 5);
+        break;
       case u'c': // pedal cadence
         if (prevwpp->cadence != 0) {
           *fout << QStringLiteral("%1").arg(prevwpp->cadence, 3);
