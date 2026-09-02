@@ -105,6 +105,13 @@ SubripFormat::subrip_prevwp_pr(const Waypoint* waypointp)
           *fout << "--.--";
         }
         break;
+      case u'd': // course (heading) in degrees. c and h are taken.
+        if (prevwpp->course_has_value()) {
+          *fout << QStringLiteral("%1").arg(prevwpp->course_value(), 0, 'f', 1);
+        } else {
+          *fout << "-.-";
+        }
+        break;
       case u'g': // road gradient
         if (gradient.has_value()) {
           *fout << QStringLiteral("%1%").arg(*gradient, 4, 'f', 1);
