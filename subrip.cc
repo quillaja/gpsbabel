@@ -90,7 +90,7 @@ SubripFormat::subrip_prevwp_pr(const Waypoint* waypointp)
           const double speed = prevwpp->speed_value() * factor;
           *fout << QStringLiteral("%1").arg(speed, 0, 'f', 1);
         } else {
-          *fout << "--.-";
+          *fout << "-.-";
         }
         break;
       case u'e': // elevation
@@ -99,14 +99,14 @@ SubripFormat::subrip_prevwp_pr(const Waypoint* waypointp)
           const double altitude = prevwpp->altitude * factor;
           *fout << QStringLiteral("%1").arg(altitude, 0, 'f', 1);
         } else {
-          *fout << "   -";
+          *fout << "-.-";
         }
         break;
       case u'v': // vertical speed in m/s
         if (vspeed.has_value()) {
-          *fout << QStringLiteral("%1").arg(*vspeed, 5, 'f', 2);
+          *fout << QStringLiteral("%1").arg(*vspeed, 0, 'f', 1);
         } else {
-          *fout << "--.--";
+          *fout << "-.-";
         }
         break;
       case u'd': // course (heading) in degrees. c and h are taken.
@@ -118,9 +118,9 @@ SubripFormat::subrip_prevwp_pr(const Waypoint* waypointp)
         break;
       case u'g': // road gradient
         if (gradient.has_value()) {
-          *fout << QStringLiteral("%1%").arg(*gradient, 4, 'f', 1);
+          *fout << QStringLiteral("%1%").arg(*gradient, 0, 'f', 1);
         } else {
-          *fout << "--.-%";
+          *fout << "-.-%";
         }
         break;
       case u't': { // timestamp
