@@ -71,6 +71,8 @@ private:
   OptionString opt_gpstime;
   OptionString opt_gpsdate;
   OptionString opt_format;
+  OptionDouble opt_altitudefactor;
+  OptionDouble opt_speedfactor;
   QDateTime gps_datetime;    // Date time corresponding to video video_offset_ms
   QDateTime video_datetime;  // Date time corresponding to video time 00:00:00,000.
   int video_offset_ms{0};
@@ -85,6 +87,8 @@ private:
     {"gps_time", &opt_gpstime, "GPS time at position video_time (hhmmss[.sss], default is first timestamp of track)", nullptr, ARGTYPE_STRING, ARG_NOMINMAX, nullptr },
     {"gps_date", &opt_gpsdate, "GPS date at position video_time (yyyymmdd, default is first timestamp of track)", nullptr, ARGTYPE_STRING, ARG_NOMINMAX, nullptr },
     {"format", &opt_format, "Format for subtitles", "%s km/h %e m\\n%t %l", ARGTYPE_STRING, ARG_NOMINMAX, nullptr },
+    {"altitude_factor", &opt_altitudefactor, "Altitude unit conversion factor", "1.0", ARGTYPE_FLOAT, ARG_NOMINMAX, nullptr },
+    {"speed_factor", &opt_speedfactor, "Speed unit conversion factor", "1.0", ARGTYPE_FLOAT, ARG_NOMINMAX, nullptr },
   };
 };
 #endif // SUBRIP_H_INCLUDED_
