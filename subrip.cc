@@ -72,8 +72,14 @@ SubripFormat::subrip_prevwp_pr(const Waypoint* waypointp)
   QTime starttime = video_time(prevwpp->GetCreationTime());
   QTime endtime = video_time(end_datetime);
   *fout << QStringLiteral("%1:%2:%3,%4 --> %5:%6:%7,%8\n")
-            .arg(starttime.hour(), 2, 10, QChar('0')).arg(starttime.minute(), 2, 10, QChar('0')).arg(starttime.second(), 2, 10, QChar('0')).arg(starttime.msec(), 3, 10, QChar('0'))
-            .arg(endtime.hour(), 2, 10, QChar('0')).arg(endtime.minute(), 2, 10, QChar('0')).arg(endtime.second(), 2, 10, QChar('0')).arg(endtime.msec(), 3, 10, QChar('0'));
+            .arg(starttime.hour(), 2, 10, QChar('0'))
+              .arg(starttime.minute(), 2, 10, QChar('0'))
+              .arg(starttime.second(), 2, 10, QChar('0'))
+              .arg(starttime.msec(), 3, 10, QChar('0'))
+            .arg(endtime.hour(), 2, 10, QChar('0'))
+              .arg(endtime.minute(), 2, 10, QChar('0'))
+              .arg(endtime.second(), 2, 10, QChar('0'))
+              .arg(endtime.msec(), 3, 10, QChar('0'));
 
   for (auto it = opt_format.get().cbegin(), end = opt_format.get().cend(); it != end; ++it) {
 
@@ -125,7 +131,10 @@ SubripFormat::subrip_prevwp_pr(const Waypoint* waypointp)
         break;
       case u't': { // timestamp
         QTime t = prevwpp->GetCreationTime().toUTC().time();
-        *fout << QStringLiteral("%1:%2:%3").arg(t.hour(), 2, 10, QChar('0')).arg(t.minute(), 2, 10, QChar('0')).arg(t.second(), 2, 10, QChar('0'));
+        *fout << QStringLiteral("%1:%2:%3")
+                  .arg(t.hour(), 2, 10, QChar('0'))
+                  .arg(t.minute(), 2, 10, QChar('0'))
+                  .arg(t.second(), 2, 10, QChar('0'));
         break;
       }
       case u'l': // coordinates
