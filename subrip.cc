@@ -84,16 +84,20 @@ SubripFormat::subrip_prevwp_pr(const Waypoint* waypointp)
       }
 
       switch (it->unicode()) {
-      case u's': // speed in km/h
+      case u's': // speed
         if (prevwpp->speed_has_value()) {
-          *fout << QStringLiteral("%1").arg(MPS_TO_KPH(prevwpp->speed_value()), 4, 'f', 1);
+          const double factor = opt_speedfactor.has_value() ? opt_speedfactor.get_result() : 1.0f;
+          const double speed = prevwpp->speed_value() * factor;
+          *fout << QStringLiteral("%1").arg(speed, 0, 'f', 1);
         } else {
           *fout << "--.-";
         }
         break;
-      case u'e': // elevation in meters
+      case u'e': // elevation
         if (prevwpp->altitude != unknown_alt) {
-          *fout << QStringLiteral("%1").arg(prevwpp->altitude, 4, 'f', 0);
+          const double factor = opt_altitudefactor.has_value() ? opt_altitudefactor.get_result() : 1.0f;
+          const double altitude = prevwpp->altitude * factor;
+          *fout << QStringLiteral("%1").arg(altitude, 0, 'f', 1);
         } else {
           *fout << "   -";
         }
