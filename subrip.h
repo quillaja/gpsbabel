@@ -87,7 +87,7 @@ private:
     {"video_time", &opt_videotime, "Video position for which exact GPS time is known (hhmmss[.sss], default is 00:00:00,000)", nullptr, ARGTYPE_STRING, ARG_NOMINMAX, nullptr },
     {"gps_time", &opt_gpstime, "GPS time at position video_time (hhmmss[.sss], default is first timestamp of track)", nullptr, ARGTYPE_STRING, ARG_NOMINMAX, nullptr },
     {"gps_date", &opt_gpsdate, "GPS date at position video_time (yyyymmdd, default is first timestamp of track)", nullptr, ARGTYPE_STRING, ARG_NOMINMAX, nullptr },
-    {"format", &opt_format, "Format for subtitles", "%s m/s %e m\\n%t %l", ARGTYPE_STRING, ARG_NOMINMAX, nullptr },
+    {"format", &opt_format, "Format for subtitles", "{speed:4.1f} m/s {altitude:4.0f} m\n{hour:02.0f}:{minute:02.0f}:{second:02.0f} Lat={latitude:.5f} Lon={longitude:.5f}", ARGTYPE_STRING, ARG_NOMINMAX, nullptr },
     {"altitude_factor", &opt_altitudefactor, "Altitude unit conversion factor", "1.0", ARGTYPE_FLOAT, ARG_NOMINMAX, nullptr },
     {"speed_factor", &opt_speedfactor, "Speed unit conversion factor", "1.0", ARGTYPE_FLOAT, ARG_NOMINMAX, nullptr },
   };
