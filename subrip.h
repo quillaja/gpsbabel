@@ -64,6 +64,7 @@ private:
   QTime video_time(const QDateTime& dt) const;
   void subrip_prevwp_pr(const Waypoint* waypointp);
   void subrip_trkpt_pr(const Waypoint* waypointp);
+  QString subrip_format();
 
   /* Data Members */
 

@@ -31,6 +31,10 @@
 #include "src/core/datetime.h"  // for DateTime
 #include "src/core/logging.h"   // for Fatal
 
+#include <format>   // for std::vformat, std::make_format_args
+#include <vector>   // for std::vector
+#include <regex>    // for std::regex, std:regex_replace
+#include <limits>   // for std::numeric_limits::quiet_NaN
 
 /* internal helper functions */
 
@@ -182,6 +186,89 @@ SubripFormat::subrip_prevwp_pr(const Waypoint* waypointp)
     }
   }
   *fout << "\n\n";
+}
+
+QString
+SubripFormat::subrip_format()
+{
+  // prepare fields and values
+  const double nan = std::numeric_limits<double>::quiet_NaN();
+  QTime t = prevwpp->GetCreationTime().toUTC().time();
+
+  const std::vector<std::string> variables = {
+    "hour",
+    "minute",
+    "second",
+    "longitude",
+    "latitude",
+    "altitude",
+    "speed",
+    "course",
+    "vspeed",
+    "gradient",
+    "cadence",
+    "heartrate",
+  };
+
+  const double speed_factor = opt_speedfactor.has_value() ? opt_speedfactor.get_result() : 1.0;
+  const double altitude_factor = opt_altitudefactor.has_value() ? opt_altitudefactor.get_result() : 1.0;
+  const std::vector<double> values = {
+    static_cast<double>(t.hour()),
+    static_cast<double>(t.minute()),
+    static_cast<double>(t.second()),
+    prevwpp->longitude,
+    prevwpp->latitude,
+    prevwpp->altitude != unknown_alt ? prevwpp->altitude * altitude_factor : nan,
+    prevwpp->speed_has_value() ? speed_factor * prevwpp->speed_value() : nan,
+    prevwpp->course_has_value() ? prevwpp->course_value() : nan,
+    vspeed.has_value() ? *vspeed * altitude_factor: nan,
+    gradient.has_value() ? *gradient : nan,
+    prevwpp->cadence != 0 ? prevwpp->cadence : nan,
+    prevwpp->heartrate != 0 ? prevwpp->heartrate : nan,
+  };
+
+  // replace field names with indexes
+  std::string user_fmt{opt_format.get().toStdString()};
+  for (size_t i = 0; i < variables.size(); ++i)
+  {
+    const auto find = std::format("\\{{({})(:.*)?\\}}", variables[i]);
+    const auto replace = std::format("{{{}$2}}", i);
+    const std::regex find_re{find};
+    user_fmt = std::regex_replace(user_fmt, find_re, replace);
+  }
+
+  // find and error on any unknown leftover format expressions
+  // because these will crash the actual replacement
+  const std::regex unknown_re{"\\{+(\\D*?)(:.*?)?\\}+"};
+  std::string unknown_fmt;
+  std::string rest = user_fmt;
+  for (std::smatch bad; std::regex_search(rest, bad, unknown_re);)
+  {
+    unknown_fmt += " ";
+    unknown_fmt += bad[0];
+    rest = bad.suffix();
+  }
+  if (unknown_fmt != "")
+  {
+    const std::string error = "ERROR: unknown formats:" + unknown_fmt;
+    gbFatal(error.c_str());
+  }
+
+  // stupidly fill the args
+  const auto args = std::make_format_args(
+    values[0], values[1], values[2], values[3], values[4], values[5],
+    values[6], values[7], values[8], values[9], values[10], values[11]);
+  // do the actual thing
+  try
+  {
+    const auto final_fmt = std::vformat(user_fmt, args);
+    return QString::fromStdString(final_fmt);
+  }
+  catch(const std::format_error& e)
+  {
+    const std::string error = std::format("format error: {}", e.what());
+    gbFatal(error.c_str()); 
+  }
 }
 
 /* callback functions */
