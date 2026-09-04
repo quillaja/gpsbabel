@@ -35,6 +35,62 @@
 #include <vector>   // for std::vector
 #include <regex>    // for std::regex, std:regex_replace
 #include <limits>   // for std::numeric_limits::quiet_NaN
+#include <variant>
+#include <iostream>
+#include <map>
+#include <unordered_map>
+
+class FormatString
+{
+private:
+  const std::string original_fmt_string;
+  const std::string nan_inf_replacement;
+
+public:
+  using BasicValue = std::variant<int64_t, double, std::string, bool>;
+
+  FormatString(const std::string &fmt_string, const std::string &nan_inf_replacement = "---")
+      : original_fmt_string{fmt_string},
+        nan_inf_replacement{nan_inf_replacement} {}
+
+  ~FormatString() = default;
+
+  /// @brief Replaces named fields in format string using the mapping of field name to value.
+  /// @param fields A mapping of field names to their replacement values.
+  /// @return The format string with fields replaced.
+  /// @throws std::format_error An error during field replacement.
+  std::string format(const std::unordered_map<std::string, BasicValue> &fields) const
+  {
+    std::string format_str{original_fmt_string};
+    const std::regex nan_inf_re{"nan|-?inf", std::regex_constants::icase};
+
+    for (const auto &[field_name, field_value] : fields)
+    {
+      const auto f{std::format("\\{{{}(?::.*?)?\\}}", field_name)};
+      const std::regex find_re{f};
+      for (std::smatch found; std::regex_search(format_str, found, find_re);)
+      {
+        auto found_fmt = found.str();
+        found_fmt = std::regex_replace(found_fmt, std::regex{field_name}, "");
+        try
+        {
+          auto stupid_shit = [&](auto &v)
+          { return std::vformat(found_fmt, std::make_format_args(v)); };
+          auto formatted = std::visit(stupid_shit, field_value);
+          formatted = std::regex_replace(formatted, nan_inf_re, nan_inf_replacement);
+          format_str = found.prefix().str() + formatted + found.suffix().str();
+        }
+        catch (const std::format_error &e)
+        {
+          const std::string error = std::format("format error for {}: {}", field_name, e.what());
+          throw new std::format_error{error};
+        }
+      }
+    }
+
+    return format_str;
+  }
+};
 
 /* internal helper functions */
 
@@ -91,84 +147,136 @@ SubripFormat::subrip_prevwp_pr(const Waypoint* waypointp)
 QString
 SubripFormat::subrip_format()
 {
+  using BasicValue = std::variant<int64_t, double, std::string, bool>;
+
   // prepare fields and values
+  const auto nan_inf_replacement = "---";
   const double nan = std::numeric_limits<double>::quiet_NaN();
-  QTime t = prevwpp->GetCreationTime().toUTC().time();
-
-  const std::vector<std::string> variables = {
-    "hour",
-    "minute",
-    "second",
-    "longitude",
-    "latitude",
-    "altitude",
-    "speed",
-    "course",
-    "vspeed",
-    "gradient",
-    "cadence",
-    "heartrate",
-  };
-
+  const QTime t = prevwpp->GetCreationTime().toUTC().time();
   const double speed_factor = opt_speedfactor.has_value() ? opt_speedfactor.get_result() : 1.0;
   const double altitude_factor = opt_altitudefactor.has_value() ? opt_altitudefactor.get_result() : 1.0;
-  const std::vector<double> values = {
-    static_cast<double>(t.hour()),
-    static_cast<double>(t.minute()),
-    static_cast<double>(t.second()),
-    prevwpp->longitude,
-    prevwpp->latitude,
-    prevwpp->altitude != unknown_alt ? prevwpp->altitude * altitude_factor : nan,
-    prevwpp->speed_has_value() ? speed_factor * prevwpp->speed_value() : nan,
-    prevwpp->course_has_value() ? prevwpp->course_value() : nan,
-    vspeed.has_value() ? *vspeed * altitude_factor: nan,
-    gradient.has_value() ? *gradient : nan,
-    prevwpp->cadence != 0 ? prevwpp->cadence : nan,
-    prevwpp->heartrate != 0 ? prevwpp->heartrate : nan,
+
+  const std::unordered_map<std::string, BasicValue> fields = {
+    {"hour", t.hour()},
+    {"minute", t.minute()},
+    {"second", t.second()},
+    {"longitude", prevwpp->longitude},
+    {"latitude", prevwpp->latitude},
+    {"altitude", prevwpp->altitude != unknown_alt ? prevwpp->altitude * altitude_factor : nan},
+    {"speed", prevwpp->speed_has_value() ? speed_factor * prevwpp->speed_value() : nan},
+    {"course", prevwpp->course_has_value() ? prevwpp->course_value() : nan},
+    {"vspeed", vspeed.has_value() ? *vspeed * altitude_factor : nan},
+    {"gradient", gradient.has_value() ? *gradient : nan},
+    {"cadence", prevwpp->cadence != 0 ? prevwpp->cadence : nan},
+    {"heartrate", prevwpp->heartrate != 0 ? prevwpp->heartrate : nan},
+    {"turd", "666"},
+    {"butt", true},
   };
 
-  // replace field names with indexes
-  std::string user_fmt{opt_format.get().toStdString()};
-  for (size_t i = 0; i < variables.size(); ++i)
+  try
   {
-    const auto find = std::format("\\{{({})(:.*)?\\}}", variables[i]);
-    const auto replace = std::format("{{{}$2}}", i);
-    const std::regex find_re{find};
-    user_fmt = std::regex_replace(user_fmt, find_re, replace);
+    return QString::fromStdString( FormatString(opt_format.get().toStdString()).format(fields) );
   }
+  catch (const std::format_error &e)
+  {
+    gbFatal(e.what());
+  }
+
+  // std::vector<BasicValue> values = {
+  //   t.hour(),
+  //   t.minute(),
+  //   t.second(),
+  //   prevwpp->longitude,
+  //   prevwpp->latitude,
+  //   prevwpp->altitude != unknown_alt ? prevwpp->altitude * altitude_factor : nan,
+  //   prevwpp->speed_has_value() ? speed_factor * prevwpp->speed_value() : nan,
+  //   prevwpp->course_has_value() ? prevwpp->course_value() : nan,
+  //   vspeed.has_value() ? *vspeed * altitude_factor: nan,
+  //   gradient.has_value() ? *gradient : nan,
+  //   prevwpp->cadence != 0 ? prevwpp->cadence : nan,
+  //   prevwpp->heartrate != 0 ? prevwpp->heartrate : nan,
+  //   "666",
+  // };
+
+  // for each kv,
+  // create fmt regex with var name
+  // do regex search loop
+  //  when find fmt exp, 
+  //    replace var name with {}
+  //    run std::format
+  //    re
+  //   
+
+  // replace field names with indexes
+  /* the good stuff
+  std::string user_fmt{opt_format.get().toStdString()};
+  const std::regex nan_inf_re{"nan|-?inf", std::regex_constants::icase};
+
+  for (const auto& [field_name, field_value]: fields)
+  {
+    const auto f{std::format("\\{{{}(?::.*?)?\\}}", field_name)};
+    const std::regex find_re{f};
+    for (std::smatch found; std::regex_search(user_fmt, found, find_re);)
+    {
+      auto found_fmt = found.str();
+      found_fmt = std::regex_replace(found_fmt, std::regex{field_name}, "");
+      try
+      {
+        auto stupid_shit = [&](auto &v) { return std::vformat(found_fmt, std::make_format_args(v)); };
+        auto formatted = std::visit(stupid_shit, field_value);
+        formatted = std::regex_replace(formatted, nan_inf_re, nan_inf_replacement);
+        user_fmt = found.prefix().str() + formatted + found.suffix().str();
+      }
+      catch (const std::format_error &e)
+      {
+        const std::string error = std::format("format error for {}: {}", field_name, e.what());
+        gbFatal(error.c_str());
+      }
+    }
+  }*/
+
+  // std::cout << "b4 braces " << user_fmt << "\n";
+  // dedouble braces like normal format
+  // const std::regex open_re{"(\\{\\{)+"};
+  // const std::regex close_re{"(\\}\\})+"};
+  // user_fmt = std::regex_replace(user_fmt, open_re, "{");
+  // user_fmt = std::regex_replace(user_fmt, close_re, "}");
+  // std::cout << "final " << user_fmt << "\n";
 
   // find and error on any unknown leftover format expressions
   // because these will crash the actual replacement
-  const std::regex unknown_re{"\\{+(\\D*?)(:.*?)?\\}+"};
-  std::string unknown_fmt;
-  std::string rest = user_fmt;
-  for (std::smatch bad; std::regex_search(rest, bad, unknown_re);)
-  {
-    unknown_fmt += " ";
-    unknown_fmt += bad[0];
-    rest = bad.suffix();
-  }
-  if (unknown_fmt != "")
-  {
-    const std::string error = "ERROR: unknown formats:" + unknown_fmt;
-    gbFatal(error.c_str());
-  }
+  // const std::regex unknown_re{"\\{+(\\D*?)(:.*?)?\\}+"};
+  // std::string unknown_fmt;
+  // std::string rest = user_fmt;
+  // for (std::smatch bad; std::regex_search(rest, bad, unknown_re);)
+  // {
+  //   unknown_fmt += " ";
+  //   unknown_fmt += bad[0];
+  //   rest = bad.suffix();
+  // }
+  // if (unknown_fmt != "")
+  // {
+  //   const std::string error = "ERROR: unknown formats:" + unknown_fmt;
+  //   gbFatal(error.c_str());
+  // }
 
-  // stupidly fill the args
-  const auto args = std::make_format_args(
-    values[0], values[1], values[2], values[3], values[4], values[5],
-    values[6], values[7], values[8], values[9], values[10], values[11]);
-  // do the actual thing
-  try
-  {
-    const auto final_fmt = std::vformat(user_fmt, args);
-    return QString::fromStdString(final_fmt);
-  }
-  catch(const std::format_error& e)
-  {
-    const std::string error = std::format("format error: {}", e.what());
-    gbFatal(error.c_str()); 
-  }
+  // return QString::fromStdString(user_fmt);
+
+  // // stupidly fill the args
+  // const auto args = std::make_format_args(
+  //   values[0], values[1], values[2], values[3], values[4], values[5],
+  //   values[6], values[7], values[8], values[9], values[10], values[11]);
+  // // do the actual thing
+  // try
+  // {
+  //   const auto final_fmt = std::vformat(user_fmt, args);
+  //   return QString::fromStdString(final_fmt);
+  // }
+  // catch(const std::format_error& e)
+  // {
+  //   const std::string error = std::format("format error: {}", e.what());
+  //   gbFatal(error.c_str()); 
+  // }
 }
 
 /* callback functions */
