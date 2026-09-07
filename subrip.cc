@@ -39,15 +39,19 @@
 #include <iostream>
 #include <map>
 #include <unordered_map>
+#include <ranges>
 
 class FormatString
 {
 private:
   const std::string original_fmt_string;
+
   const std::string nan_inf_replacement;
+  const std::regex nan_inf_re{"nan|-?inf", std::regex_constants::icase};
 
 public:
   using BasicValue = std::variant<int64_t, double, std::string, bool>;
+  using FieldValue = std::pair<const std::string, BasicValue>;
 
   FormatString(const std::string &fmt_string, const std::string &nan_inf_replacement = "---")
       : original_fmt_string{fmt_string},
@@ -59,36 +63,44 @@ public:
   /// @param fields A mapping of field names to their replacement values.
   /// @return The format string with fields replaced.
   /// @throws std::format_error An error during field replacement.
-  std::string format(const std::unordered_map<std::string, BasicValue> &fields) const
+  template<typename T>
+  requires std::ranges::forward_range<T> && std::same_as<std::ranges::range_value_t<T>, FieldValue>
+  std::string format(const T& fields) const
   {
     std::string format_str{original_fmt_string};
-    const std::regex nan_inf_re{"nan|-?inf", std::regex_constants::icase};
 
     for (const auto &[field_name, field_value] : fields)
-    {
-      const auto f{std::format("\\{{{}(?::.*?)?\\}}", field_name)};
-      const std::regex find_re{f};
-      for (std::smatch found; std::regex_search(format_str, found, find_re);)
-      {
-        auto found_fmt = found.str();
-        found_fmt = std::regex_replace(found_fmt, std::regex{field_name}, "");
-        try
-        {
-          auto stupid_shit = [&](auto &v)
-          { return std::vformat(found_fmt, std::make_format_args(v)); };
-          auto formatted = std::visit(stupid_shit, field_value);
-          formatted = std::regex_replace(formatted, nan_inf_re, nan_inf_replacement);
-          format_str = found.prefix().str() + formatted + found.suffix().str();
-        }
-        catch (const std::format_error &e)
-        {
-          const std::string error = std::format("format error for {}: {}", field_name, e.what());
-          throw new std::format_error{error};
-        }
-      }
-    }
+      format_all_named_fields(format_str, field_name, field_value);
 
     return format_str;
+  }
+
+  void format_all_named_fields(std::string &format_str, const std::string &field_name, const BasicValue &field_value) const
+  {
+    const auto field_spec{std::format("\\{{{}(?::.*?)?\\}}", field_name)};
+    const std::regex field_spec_re{field_spec};
+    for (std::smatch matched_spec; std::regex_search(format_str, matched_spec, field_spec_re);)
+    {
+      const auto replacement = format_single_field(matched_spec.str(), field_name, field_value);
+      format_str = matched_spec.prefix().str() + replacement + matched_spec.suffix().str();
+    }
+  }
+
+  std::string format_single_field(const std::string &field_spec, const std::string &field_name, const BasicValue &field_value) const
+  {
+    try
+    {
+      const auto found_fmt = std::regex_replace(field_spec, std::regex{field_name}, "");
+      auto stupid_shit = [&](auto &v){ return std::vformat(found_fmt, std::make_format_args(v)); };
+      auto formatted = std::visit(stupid_shit, field_value);
+      formatted = std::regex_replace(formatted, nan_inf_re, nan_inf_replacement);
+      return formatted;
+    }
+    catch (const std::format_error &e)
+    {
+      const std::string error = std::format("format error for {}: {}", field_name, e.what());
+      throw new std::format_error{error};
+    }
   }
 };
 
@@ -147,8 +159,6 @@ SubripFormat::subrip_prevwp_pr(const Waypoint* waypointp)
 QString
 SubripFormat::subrip_format()
 {
-  using BasicValue = std::variant<int64_t, double, std::string, bool>;
-
   // prepare fields and values
   const auto nan_inf_replacement = "---";
   const double nan = std::numeric_limits<double>::quiet_NaN();
@@ -156,7 +166,7 @@ SubripFormat::subrip_format()
   const double speed_factor = opt_speedfactor.has_value() ? opt_speedfactor.get_result() : 1.0;
   const double altitude_factor = opt_altitudefactor.has_value() ? opt_altitudefactor.get_result() : 1.0;
 
-  const std::unordered_map<std::string, BasicValue> fields = {
+  const std::unordered_map<std::string, FormatString::BasicValue> fields = {
     {"hour", t.hour()},
     {"minute", t.minute()},
     {"second", t.second()},
