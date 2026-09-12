@@ -81,6 +81,7 @@ private:
   OptionString opt_nodata;
   OptionDouble opt_altitudefactor;
   OptionDouble opt_speedfactor;
+  OptionBool opt_localtime;
   QDateTime gps_datetime;    // Date time corresponding to video video_offset_ms
   QDateTime video_datetime;  // Date time corresponding to video time 00:00:00,000.
   int video_offset_ms{0};
@@ -98,6 +99,7 @@ private:
     {"no_data", &opt_nodata, "Substitution for no-data value", "---", ARGTYPE_STRING, ARG_NOMINMAX, nullptr },
     {"altitude_factor", &opt_altitudefactor, "Altitude unit conversion factor", "1.0", ARGTYPE_FLOAT, ARG_NOMINMAX, nullptr },
     {"speed_factor", &opt_speedfactor, "Speed unit conversion factor", "1.0", ARGTYPE_FLOAT, ARG_NOMINMAX, nullptr },
+    {"local_time", &opt_localtime, "Hour, minute, second in subtitle is local time instead of UTC", "0", ARGTYPE_BOOL, ARG_NOMINMAX, nullptr },
   };
 };
 
