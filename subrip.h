@@ -178,7 +178,7 @@ private:
     catch (const std::format_error &e)
     {
       const std::string error = std::format("format error for {}: {}", field_name, e.what());
-      throw new std::format_error{error};
+      throw std::format_error{error};
     }
   }
 };
