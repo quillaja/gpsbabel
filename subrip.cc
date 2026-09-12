@@ -108,114 +108,17 @@ SubripFormat::subrip_format()
     {"gradient", gradient.has_value() ? *gradient : nan},
     {"cadence", prevwpp->cadence != 0 ? prevwpp->cadence : nan},
     {"heartrate", prevwpp->heartrate != 0 ? prevwpp->heartrate : nan},
-    {"turd", "666"},
-    {"butt", true},
   };
 
   try
   {
-    return QString::fromStdString( FormatString(opt_format.get().toStdString()).format(fields) );
+    const auto subtitle = FormatString(opt_format.get().toStdString()).format(fields);
+    return QString::fromStdString(subtitle);
   }
   catch (const std::format_error &e)
   {
     gbFatal(e.what());
   }
-
-  // std::vector<BasicValue> values = {
-  //   t.hour(),
-  //   t.minute(),
-  //   t.second(),
-  //   prevwpp->longitude,
-  //   prevwpp->latitude,
-  //   prevwpp->altitude != unknown_alt ? prevwpp->altitude * altitude_factor : nan,
-  //   prevwpp->speed_has_value() ? speed_factor * prevwpp->speed_value() : nan,
-  //   prevwpp->course_has_value() ? prevwpp->course_value() : nan,
-  //   vspeed.has_value() ? *vspeed * altitude_factor: nan,
-  //   gradient.has_value() ? *gradient : nan,
-  //   prevwpp->cadence != 0 ? prevwpp->cadence : nan,
-  //   prevwpp->heartrate != 0 ? prevwpp->heartrate : nan,
-  //   "666",
-  // };
-
-  // for each kv,
-  // create fmt regex with var name
-  // do regex search loop
-  //  when find fmt exp, 
-  //    replace var name with {}
-  //    run std::format
-  //    re
-  //   
-
-  // replace field names with indexes
-  /* the good stuff
-  std::string user_fmt{opt_format.get().toStdString()};
-  const std::regex nan_inf_re{"nan|-?inf", std::regex_constants::icase};
-
-  for (const auto& [field_name, field_value]: fields)
-  {
-    const auto f{std::format("\\{{{}(?::.*?)?\\}}", field_name)};
-    const std::regex find_re{f};
-    for (std::smatch found; std::regex_search(user_fmt, found, find_re);)
-    {
-      auto found_fmt = found.str();
-      found_fmt = std::regex_replace(found_fmt, std::regex{field_name}, "");
-      try
-      {
-        auto stupid_shit = [&](auto &v) { return std::vformat(found_fmt, std::make_format_args(v)); };
-        auto formatted = std::visit(stupid_shit, field_value);
-        formatted = std::regex_replace(formatted, nan_inf_re, nan_inf_replacement);
-        user_fmt = found.prefix().str() + formatted + found.suffix().str();
-      }
-      catch (const std::format_error &e)
-      {
-        const std::string error = std::format("format error for {}: {}", field_name, e.what());
-        gbFatal(error.c_str());
-      }
-    }
-  }*/
-
-  // std::cout << "b4 braces " << user_fmt << "\n";
-  // dedouble braces like normal format
-  // const std::regex open_re{"(\\{\\{)+"};
-  // const std::regex close_re{"(\\}\\})+"};
-  // user_fmt = std::regex_replace(user_fmt, open_re, "{");
-  // user_fmt = std::regex_replace(user_fmt, close_re, "}");
-  // std::cout << "final " << user_fmt << "\n";
-
-  // find and error on any unknown leftover format expressions
-  // because these will crash the actual replacement
-  // const std::regex unknown_re{"\\{+(\\D*?)(:.*?)?\\}+"};
-  // std::string unknown_fmt;
-  // std::string rest = user_fmt;
-  // for (std::smatch bad; std::regex_search(rest, bad, unknown_re);)
-  // {
-  //   unknown_fmt += " ";
-  //   unknown_fmt += bad[0];
-  //   rest = bad.suffix();
-  // }
-  // if (unknown_fmt != "")
-  // {
-  //   const std::string error = "ERROR: unknown formats:" + unknown_fmt;
-  //   gbFatal(error.c_str());
-  // }
-
-  // return QString::fromStdString(user_fmt);
-
-  // // stupidly fill the args
-  // const auto args = std::make_format_args(
-  //   values[0], values[1], values[2], values[3], values[4], values[5],
-  //   values[6], values[7], values[8], values[9], values[10], values[11]);
-  // // do the actual thing
-  // try
-  // {
-  //   const auto final_fmt = std::vformat(user_fmt, args);
-  //   return QString::fromStdString(final_fmt);
-  // }
-  // catch(const std::format_error& e)
-  // {
-  //   const std::string error = std::format("format error: {}", e.what());
-  //   gbFatal(error.c_str()); 
-  // }
 }
 
 /* callback functions */
