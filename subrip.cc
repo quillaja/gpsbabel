@@ -106,8 +106,8 @@ private:
     try
     {
       field_spec = std::regex_replace(field_spec, std::regex{field_name}, "");
-      auto stupid_shit = [&](auto &v){ return std::vformat(field_spec, std::make_format_args(v)); };
-      auto formatted = std::visit(stupid_shit, field_value);
+      auto format_variant = [&](auto &v){ return std::vformat(field_spec, std::make_format_args(v)); };
+      auto formatted = std::visit(format_variant, field_value);
       formatted = std::regex_replace(formatted, nan_inf_re, nan_inf_replacement);
       return formatted;
     }
