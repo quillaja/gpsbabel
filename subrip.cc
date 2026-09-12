@@ -111,7 +111,9 @@ SubripFormat::subrip_format()
 
   try
   {
-    const auto fmt_string = opt_format.get().toStdString();
+    // must replace any literal "\n" (2 chars) in fmt string with actual newline
+    auto fmt_qstring = opt_format.get(); // make it nonconst for replace()
+    const auto fmt_string = fmt_qstring.replace("\\n", "\n").toStdString();
     const auto nan_inf_replacement = opt_nodata.get().toStdString();
     const auto subtitle = FormatString(fmt_string, nan_inf_replacement).format(fields);
     return QString::fromStdString(subtitle);
