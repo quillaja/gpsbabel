@@ -89,7 +89,6 @@ QString
 SubripFormat::subrip_format()
 {
   // prepare fields and values
-  const auto nan_inf_replacement = "---";
   const double nan = std::numeric_limits<double>::quiet_NaN();
   const QTime t = prevwpp->GetCreationTime().toUTC().time();
   const double speed_factor = opt_speedfactor.has_value() ? opt_speedfactor.get_result() : 1.0;
@@ -112,7 +111,9 @@ SubripFormat::subrip_format()
 
   try
   {
-    const auto subtitle = FormatString(opt_format.get().toStdString()).format(fields);
+    const auto fmt_string = opt_format.get().toStdString();
+    const auto nan_inf_replacement = opt_nodata.get().toStdString();
+    const auto subtitle = FormatString(fmt_string, nan_inf_replacement).format(fields);
     return QString::fromStdString(subtitle);
   }
   catch (const std::format_error &e)
