@@ -31,7 +31,7 @@
 #include "src/core/datetime.h"  // for DateTime
 #include "src/core/logging.h"   // for Fatal
 
-#include <unordered_map>
+#include <vector>
 
 /* internal helper functions */
 
@@ -95,7 +95,7 @@ SubripFormat::subrip_format()
   const double speed_factor = opt_speedfactor.has_value() ? opt_speedfactor.get_result() : 1.0;
   const double altitude_factor = opt_altitudefactor.has_value() ? opt_altitudefactor.get_result() : 1.0;
 
-  const std::unordered_map<std::string, FormatString::BasicValue> fields = {
+  const std::vector<FormatString::NamedField> fields = {
     {"hour", t.hour()},
     {"minute", t.minute()},
     {"second", t.second()},
