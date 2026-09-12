@@ -111,8 +111,8 @@ private:
 class FormatString
 {
 public:
-  using BasicValue = std::variant<int64_t, double, std::string, bool>;
-  using FieldValue = std::pair<const std::string, BasicValue>;
+  using Value = std::variant<int64_t, double, std::string, bool>;
+  using NamedField = std::pair<const std::string, Value>;
 
   /// @param fmt_string A string with replacement fields.
   /// @param nan_inf_replacement A string that will replace "nan" or "inf"
@@ -123,11 +123,11 @@ public:
 
   /// @brief Replaces named fields in format string using the mapping of field name to value.
   /// @param fields A mapping of field names to their replacement values. This
-  /// can be anything that provides an iterable of `FieldValue`.
+  /// can be anything that provides an iterable of `NamedField`.
   /// @return The format string with fields replaced.
   /// @throws std::format_error An error during field replacement.
   template <typename T>
-    requires std::ranges::forward_range<T> && std::same_as<std::ranges::range_value_t<T>, FieldValue>
+    requires std::ranges::forward_range<T> && std::same_as<std::ranges::range_value_t<T>, NamedField>
   std::string
   format(const T &fields) const
   {
@@ -161,7 +161,7 @@ private:
   /// @return The final formatted value as a string.
   /// @throws std::format_error An error during field replacement.
   std::string
-  format_single_field(std::string field_spec, const std::string &field_name, const BasicValue &field_value) const
+  format_single_field(std::string field_spec, const std::string &field_name, const Value &field_value) const
   {
     try
     {
