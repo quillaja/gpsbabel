@@ -90,7 +90,7 @@ SubripFormat::subrip_format()
 {
   // prepare fields and values
   const double nan = std::numeric_limits<double>::quiet_NaN();
-  const QTime t = prevwpp->GetCreationTime().toUTC().time();
+  const QTime t = opt_localtime ? prevwpp->GetCreationTime().toLocalTime().time() : prevwpp->GetCreationTime().toUTC().time();
   const double speed_factor = opt_speedfactor.has_value() ? opt_speedfactor.get_result() : 1.0;
   const double altitude_factor = opt_altitudefactor.has_value() ? opt_altitudefactor.get_result() : 1.0;
 
