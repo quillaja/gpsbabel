@@ -107,7 +107,7 @@ private:
 
 /// @brief Performs placement and formatting of values into a string.
 /// These format strings are generally like those expected by std::format(),
-//// but should normally have a field name specified similar to python's
+/// but should normally have a field name specified similar to python's
 /// f-strings. Unlike std::format or python, curly braces do not need to
 /// be "doubled" to insert a single brace in the final formatted string.
 /// A format string must specify a name for each field, such as
@@ -160,7 +160,7 @@ private:
   /// @brief Replace a single field, possibly containing a field name, with the
   /// formatted version of its value.
   /// @param field_spec A field such as `{}`, `{:0.2f}`, `{field_name}`, or `{field_name:0.2f}`
-  /// @param field_name The name of a variable that may appear in `field spec`.
+  /// @param field_name The name of a variable that may appear in `field_spec`.
   /// @param field_value A value to be formatted according to `field_spec`.
   /// @return The final formatted value as a string.
   /// @throws std::format_error An error during field replacement.
