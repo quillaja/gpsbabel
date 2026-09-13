@@ -70,7 +70,18 @@ private:
   QTime video_time(const QDateTime& dt) const;
   void subrip_prevwp_pr(const Waypoint* waypointp);
   void subrip_trkpt_pr(const Waypoint* waypointp);
-  QString subrip_format();
+
+  /* 
+  functions to prepare each component of a subtitle.
+  each subtitle consists of 3 parts:
+  */
+
+  // 1. A numeric counter identifying each sequential subtitle
+  QString subtitle_counter() { return QString::number(stnum++); };
+  // 2. The times that the subtitle should appear on and disappear from the screen
+  QString subtitle_onscreen_period(const Waypoint *waypointp) const;
+  // 3. Subtitle text itself on one or more lines
+  QString subtitle_content() const;
 
   /* Data Members */
 
@@ -82,6 +93,7 @@ private:
   OptionDouble opt_altitudefactor;
   OptionDouble opt_speedfactor;
   OptionBool opt_localtime;
+
   QDateTime gps_datetime;    // Date time corresponding to video video_offset_ms
   QDateTime video_datetime;  // Date time corresponding to video time 00:00:00,000.
   int video_offset_ms{0};
