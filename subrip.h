@@ -90,8 +90,8 @@ private:
   OptionString opt_gpsdate;
   OptionString opt_format;
   OptionString opt_nodata;
-  OptionDouble opt_altitudefactor;
   OptionDouble opt_speedfactor;
+  OptionDouble opt_altitudefactor;
   OptionBool opt_localtime;
 
   QDateTime gps_datetime;    // Date time corresponding to video video_offset_ms
@@ -109,8 +109,8 @@ private:
     {"gps_date", &opt_gpsdate, "GPS date at position video_time (yyyymmdd, default is first timestamp of track)", nullptr, ARGTYPE_STRING, ARG_NOMINMAX, nullptr },
     {"format", &opt_format, "Format for subtitles", "{speed:4.1f} m/s {altitude:4.0f} m\\n{hour:02d}:{minute:02d}:{second:02d} Lat={latitude:.5f} Lon={longitude:.5f}", ARGTYPE_STRING, ARG_NOMINMAX, nullptr },
     {"no_data", &opt_nodata, "Substitution for no-data value", "---", ARGTYPE_STRING, ARG_NOMINMAX, nullptr },
-    {"altitude_factor", &opt_altitudefactor, "Altitude unit conversion factor", "1.0", ARGTYPE_FLOAT, ARG_NOMINMAX, nullptr },
     {"speed_factor", &opt_speedfactor, "Speed unit conversion factor", "1.0", ARGTYPE_FLOAT, ARG_NOMINMAX, nullptr },
+    {"altitude_factor", &opt_altitudefactor, "Altitude unit conversion factor", "1.0", ARGTYPE_FLOAT, ARG_NOMINMAX, nullptr },
     {"local_time", &opt_localtime, "Hour, minute, second in subtitle is local time instead of UTC", "0", ARGTYPE_BOOL, ARG_NOMINMAX, nullptr },
   };
 };
