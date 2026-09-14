@@ -4,8 +4,8 @@
 <para>
   Each subtitle is constructed from a format string. A variety of variables
   are available that reflect aspects of the track. The format string is <emphasis>similar</emphasis>
-  to C++ <link url="https://en.cppreference.com/cpp/utility/format/spec">std::format</link> 
-  and Python <link url="https://docs.python.org/3/library/string.html#format-specification-mini-language">f-strings</link>, 
+  to C++ <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://en.cppreference.com/cpp/utility/format/spec">std::format</link> 
+  and Python <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://docs.python.org/3/library/string.html#format-specification-mini-language">f-strings</link>, 
   but must always contain the variable name.
 </para>
 <para>
