@@ -1,7 +1,4 @@
 <para>
-	Format for output subtitles.
-</para>
-<para>
   Each subtitle is constructed from a format string. A variety of variables
   are available that reflect aspects of the track. The format string is <emphasis>similar</emphasis>
   to C++ <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://en.cppreference.com/cpp/utility/format/spec">std::format</link> 
